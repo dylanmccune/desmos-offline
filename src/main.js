@@ -7,58 +7,109 @@ let currentGraphId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('calculator-container');
+    if (!container) return;
+
     manager = new CalculatorManager(container);
 
-    // Default to 2D Graphing
-    manager.loadCalculator('2d');
-
-    // For debugging
-    window.manager = manager;
-    console.log('Manager initialized and 2D calculator loaded');
-
+    // Initial state setup
     setupEvents();
     registerServiceWorker();
+
+    // Start Routing
+    handleRoute();
 });
+
+// ===== Router Logic =====
+async function handleRoute() {
+    const path = window.location.pathname;
+    const parts = path.split('/').filter(p => p);
+
+    // Normalize paths
+    if (parts.length === 0) {
+        navigate('/calculator', true);
+        return;
+    }
+
+    const mode = parts[0];
+    const type = mode === 'geometry' ? 'geometry' : '2d';
+    const id = parts[1] || null;
+
+    // Update product switcher UI visually
+    const productSwitcher = document.getElementById('btn-product-switcher');
+    if (productSwitcher) {
+        productSwitcher.setAttribute('data-mode', type);
+    }
+
+    if (id) {
+        const g = await getGraph(id);
+        if (g) {
+            currentGraphId = g.id;
+            manager.loadCalculator(g.type, g.state);
+            document.getElementById('graph-name-input').value = g.name || '';
+            console.log(`Loaded graph: ${g.name} (${g.id})`);
+        } else {
+            // Graph not found - clear and load fresh of that type
+            console.warn(`Graph ${id} not found. Loading fresh ${type} instead.`);
+            currentGraphId = null;
+            document.getElementById('graph-name-input').value = '';
+            manager.loadCalculator(type);
+            navigate(`/${mode}`, true);
+        }
+    } else {
+        // No ID, fresh start
+        currentGraphId = null;
+        document.getElementById('graph-name-input').value = '';
+        manager.loadCalculator(type);
+    }
+
+    // Update metadata/title if needed
+    document.title = (id ? 'Desmos Offline - ' + (document.getElementById('graph-name-input').value || 'Graph') : 'Desmos Offline');
+}
+
+function navigate(path, replace = false) {
+    if (replace) {
+        history.replaceState(null, '', path);
+    } else {
+        history.pushState(null, '', path);
+    }
+    handleRoute();
+}
+
+window.addEventListener('popstate', handleRoute);
 
 function setupEvents() {
     // Product Switcher (Mode Toggle)
     const productSwitcher = document.getElementById('btn-product-switcher');
-    productSwitcher.setAttribute('data-mode', '2d'); // Initial state
-
-    productSwitcher.addEventListener('click', () => {
-        const currentMode = productSwitcher.getAttribute('data-mode');
-        const nextMode = currentMode === '2d' ? 'geometry' : '2d';
-
-        productSwitcher.setAttribute('data-mode', nextMode);
-
-        currentGraphId = null;
-        document.getElementById('graph-name-input').value = '';
-        manager.loadCalculator(nextMode);
-    });
+    if (productSwitcher) {
+        productSwitcher.addEventListener('click', () => {
+            const currentMode = productSwitcher.getAttribute('data-mode');
+            const target = currentMode === '2d' ? '/geometry' : '/calculator';
+            navigate(target);
+        });
+    }
 
     // Help & Language placeholders
-    document.getElementById('btn-help').addEventListener('click', () => {
+    document.getElementById('btn-help')?.addEventListener('click', () => {
         showToast('Help coming soon!');
     });
 
-    document.getElementById('btn-language').addEventListener('click', () => {
+    document.getElementById('btn-language')?.addEventListener('click', () => {
         showToast('Language settings coming soon!');
     });
 
     // Export Dropdown Toggle
     const exportDropdown = document.querySelector('.dropdown');
-    document.getElementById('btn-export-dropdown').addEventListener('click', (e) => {
+    document.getElementById('btn-export-dropdown')?.addEventListener('click', (e) => {
         e.stopPropagation();
-        exportDropdown.classList.toggle('open');
+        exportDropdown?.classList.toggle('open');
     });
 
-    // Close dropdown on outside click
     window.addEventListener('click', () => {
-        exportDropdown.classList.remove('open');
+        exportDropdown?.classList.remove('open');
     });
 
     // Console Command Export
-    document.getElementById('btn-copy-console').addEventListener('click', async () => {
+    document.getElementById('btn-copy-console')?.addEventListener('click', async () => {
         const state = manager.getState();
         if (state) {
             const success = await copyToDesmos(state, 'console');
@@ -67,7 +118,7 @@ function setupEvents() {
     });
 
     // DesModder Export
-    document.getElementById('btn-copy-desmodder').addEventListener('click', async () => {
+    document.getElementById('btn-copy-desmodder')?.addEventListener('click', async () => {
         const state = manager.getState();
         if (state) {
             const success = await copyToDesmos(state, 'desmodder');
@@ -80,26 +131,21 @@ function setupEvents() {
     const overlay = document.getElementById('graph-menu-overlay');
     const searchInput = document.getElementById('graph-search');
 
-    btnMenu.addEventListener('click', () => {
-        overlay.showModal();
-        searchInput.value = '';
+    btnMenu?.addEventListener('click', () => {
+        overlay?.showModal();
+        if (searchInput) searchInput.value = '';
         renderGraphList();
     });
 
-    // Close overlay
-    document.getElementById('btn-close-menu').addEventListener('click', () => {
-        overlay.close();
+    document.getElementById('btn-close-menu')?.addEventListener('click', () => {
+        overlay?.close();
     });
 
-    // Close on click outside (backdrop)
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            overlay.close();
-        }
+    overlay?.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.close();
     });
 
-    // Search filtering
-    searchInput.addEventListener('input', () => {
+    searchInput?.addEventListener('input', () => {
         renderGraphList(searchInput.value.trim());
     });
 
@@ -108,66 +154,57 @@ function setupEvents() {
     const newGraphDropdown = document.getElementById('new-graph-dropdown');
     const newGraphMain = document.getElementById('btn-new-graph-main');
 
-    newGraphToggle.addEventListener('click', (e) => {
+    newGraphToggle?.addEventListener('click', (e) => {
         e.stopPropagation();
-        newGraphDropdown.classList.toggle('show');
+        newGraphDropdown?.classList.toggle('show');
     });
 
-    newGraphMain.addEventListener('click', () => {
-        currentGraphId = null;
-        document.getElementById('graph-name-input').value = '';
-        manager.loadCalculator('2d');
-        overlay.close();
+    newGraphMain?.addEventListener('click', () => {
+        navigate('/calculator');
+        overlay?.close();
     });
 
     document.querySelectorAll('.new-graph-dropdown-item').forEach(item => {
         item.addEventListener('click', () => {
             const mode = item.getAttribute('data-mode');
-            currentGraphId = null;
-            document.getElementById('graph-name-input').value = '';
-            manager.loadCalculator(mode);
-            newGraphDropdown.classList.remove('show');
-            overlay.close();
+            navigate(mode === 'geometry' ? '/geometry' : '/calculator');
+            newGraphDropdown?.classList.remove('show');
+            overlay?.close();
         });
     });
 
-    // Close dropdown on click outside
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.new-graph-dropdown-container')) {
-            newGraphDropdown.classList.remove('show');
+            newGraphDropdown?.classList.remove('show');
         }
     });
 
     // Save Graph
     const saveBtn = document.getElementById('btn-save');
+    const nameInput = document.getElementById('graph-name-input');
 
-    const markDirty = () => saveBtn.classList.add('has-changes');
-    const markClean = () => saveBtn.classList.remove('has-changes');
+    const markDirty = () => saveBtn?.classList.add('has-changes');
+    const markClean = () => saveBtn?.classList.remove('has-changes');
 
-    // Listen for typing in graph name
-    document.getElementById('graph-name-input').addEventListener('input', markDirty);
-
-    // Use the Desmos API's native change event for instant detection
+    nameInput?.addEventListener('input', markDirty);
     manager.onChange(markDirty);
 
-    saveBtn.addEventListener('click', async () => {
+    saveBtn?.addEventListener('click', async () => {
         const state = manager.getState();
         if (!state) return;
 
+        let isNew = false;
         if (!currentGraphId) {
-            currentGraphId = generateUUID();
+            currentGraphId = generateShortId();
+            isNew = true;
         }
 
-        // Get custom name from input field, fallback to generic type+time if empty or default
-        const nameInput = document.getElementById('graph-name-input');
         let name = nameInput.value.trim();
-
         if (!name) {
             const typeMap = { '2d': 'Graph', 'geometry': 'Geometry' };
             name = `${typeMap[manager.currentType]} - ${new Date().toLocaleTimeString()}`;
         }
-
-        nameInput.value = name; // Auto-fill the UI to show the generated/cleaned name
+        nameInput.value = name;
 
         const thumbnail = await manager.screenshot();
 
@@ -179,18 +216,19 @@ function setupEvents() {
             thumbnail: thumbnail
         };
 
+        if (isNew) {
+            const modePath = manager.currentType === 'geometry' ? 'geometry' : 'calculator';
+            navigate(`/${modePath}/${currentGraphId}`, true);
+        }
+
         await saveGraph(graphObj);
         markClean();
         showToast('Graph saved locally.');
-
-        // Re-render the graph list if the overlay is open
-        if (document.getElementById('graph-menu-overlay').classList.contains('open')) {
-            renderGraphList();
-        }
+        renderGraphList(searchInput?.value.trim());
     });
 
-    // Export All
-    document.getElementById('btn-export-all').addEventListener('click', async () => {
+    // Export/Import
+    document.getElementById('btn-export-all')?.addEventListener('click', async () => {
         const allGraphs = await getAllGraphs();
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allGraphs));
         const dlAnchorElem = document.createElement('a');
@@ -199,10 +237,9 @@ function setupEvents() {
         dlAnchorElem.click();
     });
 
-    // Import
     const fileImport = document.getElementById('file-import');
-    document.getElementById('btn-import').addEventListener('click', () => fileImport.click());
-    fileImport.addEventListener('change', async (e) => {
+    document.getElementById('btn-import')?.addEventListener('click', () => fileImport?.click());
+    fileImport?.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -211,17 +248,24 @@ function setupEvents() {
             try {
                 const graphs = JSON.parse(event.target.result);
                 if (Array.isArray(graphs)) {
-                    for (const g of graphs) {
-                        await saveGraph(g);
-                    }
+                    for (const g of graphs) await saveGraph(g);
                     showToast(`Imported ${graphs.length} graphs.`);
-                    if (document.getElementById('graph-menu-overlay').classList.contains('open')) renderGraphList();
+                    renderGraphList();
                 }
             } catch (err) {
                 showToast('Invalid JSON file.');
             }
         };
         reader.readAsText(file);
+    });
+
+    // Intercept internal links
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link && link.origin === window.location.origin && !link.hasAttribute('download')) {
+            e.preventDefault();
+            navigate(link.pathname + link.search + link.hash);
+        }
     });
 }
 
@@ -244,11 +288,10 @@ function timeAgo(timestamp) {
 
 async function renderGraphList(searchQuery = '') {
     const listEl = document.getElementById('saved-graphs-list');
+    if (!listEl) return;
     listEl.innerHTML = '';
 
     let graphs = await getAllGraphs();
-
-    // Filter by search query
     if (searchQuery) {
         const q = searchQuery.toLowerCase();
         graphs = graphs.filter(g => (g.name || '').toLowerCase().includes(q));
@@ -259,13 +302,13 @@ async function renderGraphList(searchQuery = '') {
         return;
     }
 
-    // Sort descending by lastModified
     graphs.sort((a, b) => b.lastModified - a.lastModified);
 
     graphs.forEach(g => {
         const card = document.createElement('div');
         card.className = 'graph-card';
         card.setAttribute('data-id', g.id);
+        card.setAttribute('data-type', g.type);
 
         const ago = timeAgo(g.lastModified);
         const previewContent = g.thumbnail
@@ -290,34 +333,24 @@ async function renderGraphList(searchQuery = '') {
         listEl.appendChild(card);
     });
 
-    // Bind card click to load
     listEl.querySelectorAll('.graph-card').forEach(card => {
-        card.addEventListener('click', async (e) => {
-            // Don't load if clicking delete
+        card.addEventListener('click', (e) => {
             if (e.target.closest('.delete-btn')) return;
-
             const id = card.getAttribute('data-id');
-            const g = await getGraph(id);
-            if (g) {
-                currentGraphId = g.id;
-                const productSwitcher = document.getElementById('btn-product-switcher');
-                productSwitcher.setAttribute('data-mode', g.type);
-                manager.loadCalculator(g.type, g.state);
-                document.getElementById('graph-name-input').value = g.name || '';
-                document.getElementById('graph-menu-overlay').classList.remove('open');
-            }
+            const type = card.getAttribute('data-type');
+            const modePath = type === 'geometry' ? 'geometry' : 'calculator';
+            navigate(`/${modePath}/${id}`);
+            document.getElementById('graph-menu-overlay')?.close();
         });
     });
 
-    // Bind delete buttons
     listEl.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const id = e.target.getAttribute('data-id');
             await deleteGraph(id);
-            if (currentGraphId === id) currentGraphId = null;
-            const searchInput = document.getElementById('graph-search');
-            renderGraphList(searchInput ? searchInput.value.trim() : '');
+            if (currentGraphId === id) navigate(`/${manager.currentType === 'geometry' ? 'geometry' : 'calculator'}`, true);
+            renderGraphList(searchQuery);
         });
     });
 }
@@ -330,13 +363,9 @@ function showToast(message) {
         toast.className = 'toast';
         document.body.appendChild(toast);
     }
-
     toast.textContent = message;
     toast.classList.add('show');
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 function registerServiceWorker() {
@@ -351,13 +380,11 @@ function registerServiceWorker() {
     }
 }
 
-function generateUUID() {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
+function generateShortId() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 10; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    // Fallback for non-secure contexts (e.g., fedora.local)
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
+    return result;
 }
