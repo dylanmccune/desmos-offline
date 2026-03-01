@@ -1,0 +1,703 @@
+/* ===== Desmos Native Header — exact pixel specs ===== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* ===== Header ===== */
+.dcg-header {
+    background: #2a2a2a;
+    width: 100%;
+    height: 46px;
+    border-bottom: 1px solid #000;
+    display: flex;
+    justify-content: space-between;
+    padding-left: 2px;
+    padding-right: 2px;
+    gap: 30px;
+    color: #ddd;
+    flex-shrink: 0;
+    z-index: 100;
+    position: relative;
+    align-items: center;
+}
+
+/* ===== Left Container ===== */
+.align-left-container {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+.align-right-container {
+    display: flex;
+    align-items: start;
+    height: 100%;
+}
+
+.align-center-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+/* ===== Logo ===== */
+.dcg-desmos-svg-logo {
+    height: 22px;
+    fill: rgb(221, 221, 221);
+}
+
+.dcg-home-link {
+    display: inline;
+    text-decoration: none;
+}
+
+.dcg-home-link:hover {
+    opacity: 0.85;
+}
+
+/* ===== Header Buttons — .dcg-unstyled-button from native CSS ===== */
+.dcg-header-btn {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+    overflow: visible;
+    text-transform: none;
+    -webkit-appearance: button;
+    appearance: button;
+    border: none;
+    background-color: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ddd;
+}
+
+#btn-menu {
+    padding: 0 9px;
+}
+
+.align-right-container .dcg-header-btn {
+    width: 40px;
+    height: 46px;
+}
+
+.dcg-header-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Nav Icons ===== */
+.nav-icon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+/* Specific folder icon size (22px) */
+#btn-menu .nav-icon {
+    width: 22px;
+    height: 22px;
+}
+
+/* ===== Header button container ===== */
+.dcg-header-btn-container {
+    display: flex;
+    align-items: start;
+}
+
+
+/* ===== Title input — 16px, #ddd ===== */
+.dcg-graph-title-container {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    border-left: 1px solid #949494;
+
+}
+
+.graph-title-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 400;
+    color: #ddd;
+    width: 100%;
+    padding: 4px 6px;
+    border-radius: 3px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.graph-title-input::placeholder {
+    color: rgba(255, 255, 255, 0.47);
+}
+
+.graph-title-input:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.graph-title-input:focus {
+    background-color: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+}
+
+/* ===== Save Button — no changes state ===== */
+.dcg-save-button {
+    font-family: inherit;
+    font-size: 14.4px;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+    overflow: visible;
+    text-transform: none;
+    -webkit-appearance: button;
+    appearance: button;
+    border: 1px solid rgb(102, 102, 102);
+    border-radius: 4px;
+    background: transparent;
+    padding: 0 15px;
+    height: 34px;
+    cursor: pointer;
+    color: rgb(102, 102, 102);
+    margin-left: 8px;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.dcg-save-button:hover:not(:disabled):not(.has-changes) {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgb(148, 148, 148);
+    color: rgb(148, 148, 148);
+}
+
+/* ===== Save Button — has changes state ===== */
+.dcg-save-button.has-changes {
+    background: rgb(47, 114, 220);
+    border: 1px solid rgba(0, 0, 0, 0);
+    border-radius: 4px;
+    color: #fff;
+    box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.04) 0px -1px 0px 0px inset;
+    cursor: pointer;
+}
+
+.dcg-save-button.has-changes:hover {
+    background: rgb(36, 87, 168);
+}
+
+.dcg-save-button:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+/* ===== Product Switcher ===== */
+.dcg-product-switcher {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+    overflow: visible;
+    text-transform: none;
+    -webkit-appearance: button;
+    appearance: button;
+    border: none;
+    background-color: unset;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.product-icon-inner {
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 0;
+    margin: 0;
+    line-height: 18.4px;
+    color: #fff;
+}
+
+.dcg-product-switcher:hover .product-icon-inner {
+    transform: scale(1.08);
+}
+
+.product-icon-inner::before {
+    content: '';
+    display: block;
+    width: 18px;
+    height: 18px;
+    background-color: white;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+}
+
+/* Mode-specific Switcher Styles */
+[data-mode="2d"] .product-icon-inner {
+    background-image: linear-gradient(330deg, rgb(0, 124, 20) 6%, rgb(0, 178, 29) 75%);
+}
+
+[data-mode="2d"] .product-icon-inner::before {
+    mask-image: url("/src/icons/graphing.svg");
+    -webkit-mask-image: url("/src/icons/graphing.svg");
+}
+
+[data-mode="geometry"] .product-icon-inner {
+    background-image: linear-gradient(330deg, rgb(119, 16, 154) 6%, rgb(215, 111, 252) 75%);
+}
+
+[data-mode="geometry"] .product-icon-inner::before {
+    mask-image: url("/src/icons/geometry.svg");
+    -webkit-mask-image: url("/src/icons/geometry.svg");
+}
+
+/* ===== Graph Menu Dialog ===== */
+.graph-menu-overlay {
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 0;
+    margin: auto;
+    inset: 80px;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 10px 0px;
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    overflow: hidden;
+    position: fixed;
+}
+
+.graph-menu-overlay::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.graph-menu-overlay[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.graph-menu-container {
+    padding: 26px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+}
+
+.graph-menu-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.graph-menu-topbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.graph-menu-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* New Graph Split Button */
+.new-graph-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.new-graph-split-btn {
+    display: flex;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #fff;
+    height: 36px;
+}
+
+.new-graph-main-btn,
+.new-graph-toggle-btn {
+    background: transparent;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-family: inherit;
+}
+
+.new-graph-main-btn:hover,
+.new-graph-toggle-btn:hover {
+    background: #f8f8f8;
+}
+
+
+.new-graph-toggle-btn {
+    width: 33.6px;
+    height: 36px;
+    border-left: 1px solid #bbb;
+}
+
+/* Icons using masks */
+.icon-create-graphing,
+.icon-create-geo {
+    display: inline-block;
+    width: 22.4px;
+    height: 22.4px;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+.icon-caret-down {
+    display: inline-block;
+    width: 9.6px;
+    height: 9.6px;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+.icon-create-graphing {
+    -webkit-mask-image: url("/src/icons/create_graphing.svg");
+    mask-image: url("/src/icons/create_graphing.svg");
+    color: #04991c !important;
+}
+
+.icon-create-geo {
+    -webkit-mask-image: url("/src/icons/create_geo.svg");
+    mask-image: url("/src/icons/create_geo.svg");
+    color: #b53edf !important;
+}
+
+.icon-caret-down {
+    -webkit-mask-image: url("/src/icons/caret_down.svg");
+    mask-image: url("/src/icons/caret_down.svg");
+    color: #333;
+    margin-right: 0;
+}
+
+/* Search Bar */
+.graph-menu-search-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.graph-menu-search-input {
+    height: 36px;
+    width: 280px;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    padding: 0 10px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+}
+
+.graph-menu-search-input:focus {
+    border-color: #999;
+}
+
+.graph-menu-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    margin-left: 8px;
+}
+
+.graph-menu-close-btn:hover {
+    color: #333;
+}
+
+/* Actions Row */
+.graph-menu-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.graph-menu-action-btn {
+    padding: 7px 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    color: #333;
+}
+
+.graph-menu-action-btn:hover {
+    background: #f8f8f8;
+    border-color: #bbb;
+}
+
+/* Grid Area */
+.graph-menu-grid-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-top: 12px;
+}
+
+.graph-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding-bottom: 24px;
+}
+
+/* Graph Card */
+.graph-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.graph-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.graph-card-preview {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: #fdfdfd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid #eee;
+}
+
+.graph-card-preview-placeholder {
+    font-size: 32px;
+    opacity: 0.5;
+}
+
+.graph-card-info {
+    padding: 10px 12px;
+    background: #fff;
+}
+
+.graph-card-title {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.graph-card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #888;
+}
+
+.graph-card-type {
+    text-transform: uppercase;
+    background: #eee;
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+/* Delete Button on Hover */
+.graph-card-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.graph-card:hover .graph-card-actions {
+    opacity: 1;
+}
+
+.graph-card-action-btn {
+    background: #fff;
+    border: 1px solid #ccc;
+    color: #c00;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.graph-card-action-btn:hover {
+    background: #fee;
+    border-color: #c00;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 15px;
+    grid-column: 1 / -1;
+}
+
+/* ===== Dropdowns (New Graph & Header Export) ===== */
+.new-graph-dropdown-content {
+    display: none;
+    position: absolute;
+    background: #fff;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    z-index: 2500;
+    margin-top: 4px;
+    overflow: hidden;
+    top: 100%;
+    left: 0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: #fff;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    z-index: 2500;
+    margin-top: 4px;
+    overflow: hidden;
+    top: 46px;
+    /* Header specific */
+    right: 0;
+}
+
+.new-graph-dropdown-content.show,
+.dropdown.open .dropdown-content {
+    display: block;
+}
+
+.new-graph-dropdown-item,
+.dropdown-item {
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.new-graph-dropdown-item:hover,
+.dropdown-item:hover {
+    background: #f0f0f0;
+}
+
+/* Header Specific Icons in Graph Dropdown */
+.new-graph-dropdown-item span {
+    margin-right: 8px;
+}
+
+/* ===== Main Calculator Container ===== */
+#calculator-container {
+    flex: 1;
+    width: 100%;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ===== Toast ===== */
+.toast {
+    position: fixed;
+    top: 56px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: #333;
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    z-index: 3000;
+    transition: transform 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Misc Utilities */
+.w-full {
+    width: 100%;
+}

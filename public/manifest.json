@@ -1,0 +1,16 @@
+{
+    "name": "Desmos Offline",
+    "short_name": "Desmos",
+    "description": "Offline-capable Desmos Graphing Calculator",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#121212",
+    "theme_color": "#1e1e1e",
+    "icons": [
+        {
+            "src": "/vite.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        }
+    ]
+}
