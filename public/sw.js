@@ -1,34 +1,23 @@
-const CACHE_NAME = 'desmos-offline-v31';
+const CACHE_NAME = 'desmos-offline-v32';
 
 const DESMOS_API_URL = 'https://www.desmos.com/api/v1.12/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6';
 
-// URLs we want to cache explicitly
-const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/src/main.js',
-    '/src/style.css',
-    '/src/CalculatorManager.js',
-    '/src/db.js',
-    '/src/clipboard.js',
-    '/vite.svg',
-    '/manifest.json'
-];
-
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(async (cache) => {
-            await cache.addAll(STATIC_ASSETS).catch(err => console.warn('Static asset cache failed:', err));
-            // Pre-cache Desmos API — must use no-cors since it's cross-origin; response is opaque
-            try {
-                const resp = await fetch(DESMOS_API_URL, { mode: 'no-cors' });
-                await cache.put(DESMOS_API_URL, resp);
-                console.log('Desmos API pre-cached');
-            } catch (e) {
-                console.warn('Could not pre-cache Desmos API (offline during install?):', e);
-            }
-        }).catch(err => console.error('Cache install error:', err))
-    );
+    event.waitUntil((async () => {
+        const cache = await caches.open(CACHE_NAME);
+
+        // Cache the app shell (index.html served at /)
+        await cache.add('/').catch(e => console.warn('Failed to cache /:', e));
+
+        // Pre-cache Desmos API with no-cors (response will be opaque, best-effort)
+        try {
+            const resp = await fetch(DESMOS_API_URL, { mode: 'no-cors' });
+            await cache.put(DESMOS_API_URL, resp);
+            console.log('Desmos API pre-cached');
+        } catch (e) {
+            console.warn('Could not pre-cache Desmos API (offline during install?):', e);
+        }
+    })());
     self.skipWaiting();
 });
 
@@ -49,35 +38,31 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // Only intercept GET requests
     if (event.request.method !== 'GET') return;
 
     const url = new URL(event.request.url);
-
-    // Bypass chrome extensions or other weird schemes
     if (!url.protocol.startsWith('http')) return;
 
     event.respondWith(
         caches.match(event.request, { ignoreSearch: true, ignoreVary: true }).then((cachedResponse) => {
             if (cachedResponse) {
-                // Return from cache, but update it in background (stale-while-revalidate)
+                // Serve from cache, refresh in background (stale-while-revalidate)
                 fetch(event.request).then((networkResponse) => {
                     if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
                         caches.open(CACHE_NAME).then((cache) => {
                             cache.put(event.request, networkResponse.clone());
                         });
                     }
-                }).catch(() => { });
+                }).catch(() => {});
                 return cachedResponse;
             }
 
-            // Not in cache — go to network
+            // Not in cache — fetch from network and cache dynamically
             return fetch(event.request).then((networkResponse) => {
                 if (!networkResponse || networkResponse.type === 'error') {
-                    return networkResponse;
+                    return new Response('', { status: 503, statusText: 'Service Unavailable' });
                 }
 
-                // Cache successful responses and opaque cross-origin responses
                 if (networkResponse.status === 200 || networkResponse.type === 'opaque') {
                     const responseToCache = networkResponse.clone();
                     caches.open(CACHE_NAME).then((cache) => {
@@ -87,21 +72,17 @@ self.addEventListener('fetch', (event) => {
 
                 return networkResponse;
             }).catch(async () => {
-                // Network failed
-                console.warn('Network request failed and no cache match for:', event.request.url);
+                console.warn('Network failed, no cache match:', event.request.url);
 
-                // If requesting an HTML page, return the index.html shell
-                if (event.request.mode === 'navigate' || event.request.headers.get('accept').includes('text/html')) {
+                // For HTML navigation, serve the cached app shell
+                const acceptHeader = event.request.headers.get('accept') || '';
+                if (event.request.mode === 'navigate' || acceptHeader.includes('text/html')) {
                     const cache = await caches.open(CACHE_NAME);
-                    const shellMatch = await cache.match('/index.html', { ignoreSearch: true, ignoreVary: true });
-                    if (shellMatch) return shellMatch;
+                    const shell = await cache.match('/', { ignoreSearch: true });
+                    if (shell) return shell;
                 }
 
-                // Generic fallback response to prevent hard rejection
-                return new Response('', {
-                    status: 503,
-                    statusText: 'Service Unavailable'
-                });
+                return new Response('', { status: 503, statusText: 'Service Unavailable' });
             });
         })
     );
