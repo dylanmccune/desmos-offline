@@ -155,7 +155,7 @@ function setupEvents() {
         if (!state) return;
 
         if (!currentGraphId) {
-            currentGraphId = crypto.randomUUID();
+            currentGraphId = generateUUID();
         }
 
         // Get custom name from input field, fallback to generic type+time if empty or default

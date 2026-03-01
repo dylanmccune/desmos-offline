@@ -1,4 +1,4 @@
-const CACHE_NAME = 'desmos-offline-v27';
+const CACHE_NAME = 'desmos-offline-v28';
 
 // URLs we want to cache explicitly
 const STATIC_ASSETS = [
