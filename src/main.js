@@ -216,12 +216,12 @@ function setupEvents() {
             thumbnail: thumbnail
         };
 
+        await saveGraph(graphObj);
+
         if (isNew) {
             const modePath = manager.currentType === 'geometry' ? 'geometry' : 'calculator';
             navigate(`/${modePath}/${currentGraphId}`, true);
         }
-
-        await saveGraph(graphObj);
         markClean();
         showToast('Graph saved locally.');
         renderGraphList(searchInput?.value.trim());
@@ -311,22 +311,21 @@ async function renderGraphList(searchQuery = '') {
         card.setAttribute('data-type', g.type);
 
         const ago = timeAgo(g.lastModified);
+        const typeAttr = g.type === 'geometry' ? 'geometry' : '2d';
         const previewContent = g.thumbnail
-            ? `<img src="${g.thumbnail}" alt="${g.name}" class="graph-card-thumbnail" style="width: 100%; height: 100%; object-fit: contain;">`
-            : `<span class="graph-card-preview-placeholder">📊</span>`;
+            ? `<img src="${g.thumbnail}" alt="${g.name}" class="graph-card-img">`
+            : `<div class="graph-card-img-placeholder">📊</div>`;
 
         card.innerHTML = `
-            <div class="graph-card-preview">
+            <div class="graph-card-title">${g.name || 'Untitled'}</div>
+            <div class="graph-card-image-wrap">
                 ${previewContent}
+                <div class="graph-card-overlay">
+                    <span>${ago}</span>
+                    <span class="graph-card-type-icon" data-type="${typeAttr}"></span>
+                </div>
                 <div class="graph-card-actions">
                     <button class="graph-card-action-btn delete-btn" data-id="${g.id}" title="Delete">🗑</button>
-                </div>
-            </div>
-            <div class="graph-card-info">
-                <div class="graph-card-title">${g.name || 'Untitled'}</div>
-                <div class="graph-card-meta">
-                    <span>${ago}</span>
-                    <span class="graph-card-type">${g.type}</span>
                 </div>
             </div>
         `;

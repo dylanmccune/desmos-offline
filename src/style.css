@@ -498,70 +498,123 @@ body {
 
 .graph-menu-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, 229.5px);
     gap: 20px;
     padding-bottom: 24px;
 }
 
 /* Graph Card */
 .graph-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    background: #eff2f3;
+    border: none;
+    border-radius: 5px;
     overflow: hidden;
     cursor: pointer;
-    transition: box-shadow 0.15s ease;
+    transition: background 0.15s ease;
     display: flex;
     flex-direction: column;
+    padding: 8px;
+    color: rgb(51, 51, 51);
 }
 
 .graph-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: #e2e2e2;
 }
 
-.graph-card-preview {
-    width: 100%;
-    aspect-ratio: 4/3;
-    background: #fdfdfd;
+.graph-card-image-wrap {
+    position: relative;
+    width: 213.5px;
+    height: 164.2px;
+    flex-shrink: 0;
+}
+
+.graph-card-img {
+    width: 213.5px;
+    height: 164.2px;
+    object-fit: contain;
+    outline: 1px solid rgb(187, 187, 187);
+    border-radius: 3px;
+    display: block;
+}
+
+.graph-card-img-placeholder {
+    width: 213.5px;
+    height: 164.2px;
+    outline: 1px solid rgb(187, 187, 187);
+    border-radius: 3px;
+    background: #f8f8f8;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    border-bottom: 1px solid #eee;
-}
-
-.graph-card-preview-placeholder {
     font-size: 32px;
     opacity: 0.5;
 }
 
-.graph-card-info {
-    padding: 10px 12px;
-    background: #fff;
+.graph-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.85);
+    color: rgb(51, 51, 51);
+    font-size: 14px;
+    border-radius: 2px;
+    padding: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.graph-card-type-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.graph-card-type-icon::before {
+    content: '';
+    display: block;
+    width: 13px;
+    height: 13px;
+    background-color: white;
+    mask-size: contain;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+}
+
+.graph-card-type-icon[data-type="2d"] {
+    background: linear-gradient(330deg, rgb(0, 124, 20) 6%, rgb(0, 178, 29) 75%);
+}
+
+.graph-card-type-icon[data-type="2d"]::before {
+    mask-image: url("/src/icons/graphing.svg");
+    -webkit-mask-image: url("/src/icons/graphing.svg");
+}
+
+.graph-card-type-icon[data-type="geometry"] {
+    background: linear-gradient(330deg, rgb(119, 16, 154) 6%, rgb(215, 111, 252) 75%);
+}
+
+.graph-card-type-icon[data-type="geometry"]::before {
+    mask-image: url("/src/icons/geometry.svg");
+    -webkit-mask-image: url("/src/icons/geometry.svg");
 }
 
 .graph-card-title {
     font-weight: 500;
     font-size: 14px;
-    color: #333;
-    margin-bottom: 4px;
+    color: rgb(51, 51, 51);
+    margin-bottom: 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.graph-card-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #888;
-}
-
-.graph-card-type {
-    text-transform: uppercase;
-    background: #eee;
-    padding: 1px 4px;
-    border-radius: 2px;
 }
 
 /* Delete Button on Hover */
