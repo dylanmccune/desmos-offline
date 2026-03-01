@@ -607,46 +607,88 @@ body {
     -webkit-mask-image: url("/src/icons/geometry.svg");
 }
 
+.graph-card-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
 .graph-card-title {
     font-weight: 500;
     font-size: 14px;
     color: rgb(51, 51, 51);
-    margin-bottom: 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
 }
 
-/* Delete Button on Hover */
-.graph-card-actions {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    opacity: 0;
-    transition: opacity 0.15s ease;
+.graph-card-menu-container {
+    position: relative;
+    flex-shrink: 0;
 }
 
-.graph-card:hover .graph-card-actions {
-    opacity: 1;
-}
-
-.graph-card-action-btn {
-    background: #fff;
-    border: 1px solid #ccc;
-    color: #c00;
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
+.graph-card-menu-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgb(51, 51, 51);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 16px;
+    line-height: 1;
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: inherit;
 }
 
-.graph-card-action-btn:hover {
+.graph-card-menu-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.graph-card-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 200;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.graph-card-dropdown.open {
+    display: block;
+}
+
+.graph-card-dropdown-item {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 13px;
+    color: rgb(51, 51, 51);
+    cursor: pointer;
+    font-family: inherit;
+    display: block;
+}
+
+.graph-card-dropdown-item:hover {
+    background: #f0f0f0;
+}
+
+.graph-card-dropdown-item.delete-item {
+    color: #c00;
+}
+
+.graph-card-dropdown-item.delete-item:hover {
     background: #fee;
-    border-color: #c00;
 }
 
 /* Empty State */

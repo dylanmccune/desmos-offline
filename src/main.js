@@ -106,6 +106,7 @@ function setupEvents() {
 
     window.addEventListener('click', () => {
         exportDropdown?.classList.remove('open');
+        document.querySelectorAll('.graph-card-dropdown.open').forEach(d => d.classList.remove('open'));
     });
 
     // Console Command Export
@@ -317,40 +318,62 @@ async function renderGraphList(searchQuery = '') {
             : `<div class="graph-card-img-placeholder">📊</div>`;
 
         card.innerHTML = `
-            <div class="graph-card-title">${g.name || 'Untitled'}</div>
+            <div class="graph-card-header">
+                <div class="graph-card-title">${g.name || 'Untitled'}</div>
+                <div class="graph-card-menu-container">
+                    <button class="graph-card-menu-btn" title="More options">⋯</button>
+                    <div class="graph-card-dropdown">
+                        <button class="graph-card-dropdown-item duplicate-item">Duplicate</button>
+                        <button class="graph-card-dropdown-item delete-item">Delete</button>
+                    </div>
+                </div>
+            </div>
             <div class="graph-card-image-wrap">
                 ${previewContent}
                 <div class="graph-card-overlay">
                     <span>${ago}</span>
                     <span class="graph-card-type-icon" data-type="${typeAttr}"></span>
                 </div>
-                <div class="graph-card-actions">
-                    <button class="graph-card-action-btn delete-btn" data-id="${g.id}" title="Delete">🗑</button>
-                </div>
             </div>
         `;
-        listEl.appendChild(card);
-    });
 
-    listEl.querySelectorAll('.graph-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-btn')) return;
+            if (e.target.closest('.graph-card-menu-container')) return;
             const id = card.getAttribute('data-id');
             const type = card.getAttribute('data-type');
             const modePath = type === 'geometry' ? 'geometry' : 'calculator';
             navigate(`/${modePath}/${id}`);
             document.getElementById('graph-menu-overlay')?.close();
         });
-    });
 
-    listEl.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        const menuBtn = card.querySelector('.graph-card-menu-btn');
+        const dropdown = card.querySelector('.graph-card-dropdown');
+
+        menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const id = e.target.getAttribute('data-id');
-            await deleteGraph(id);
-            if (currentGraphId === id) navigate(`/${manager.currentType === 'geometry' ? 'geometry' : 'calculator'}`, true);
+            const isOpen = dropdown.classList.contains('open');
+            document.querySelectorAll('.graph-card-dropdown.open').forEach(d => d.classList.remove('open'));
+            if (!isOpen) dropdown.classList.add('open');
+        });
+
+        card.querySelector('.duplicate-item').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const src = await getGraph(g.id);
+            if (!src) return;
+            await saveGraph({ ...src, id: generateShortId(), name: `${src.name || 'Untitled'} (copy)`, lastModified: Date.now() });
+            dropdown.classList.remove('open');
             renderGraphList(searchQuery);
         });
+
+        card.querySelector('.delete-item').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await deleteGraph(g.id);
+            if (currentGraphId === g.id) navigate(`/${manager.currentType === 'geometry' ? 'geometry' : 'calculator'}`, true);
+            dropdown.classList.remove('open');
+            renderGraphList(searchQuery);
+        });
+
+        listEl.appendChild(card);
     });
 }
 
