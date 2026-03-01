@@ -321,7 +321,7 @@ async function renderGraphList(searchQuery = '') {
             <div class="graph-card-header">
                 <div class="graph-card-title">${g.name || 'Untitled'}</div>
                 <div class="graph-card-menu-container">
-                    <button class="graph-card-menu-btn" title="More options">⋯</button>
+                    <button class="graph-card-menu-btn" title="More options"></button>
                     <div class="graph-card-dropdown">
                         <button class="graph-card-dropdown-item duplicate-item">Duplicate</button>
                         <button class="graph-card-dropdown-item delete-item">Delete</button>
