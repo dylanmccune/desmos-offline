@@ -145,6 +145,8 @@
                     <button class="graph-menu-action-btn" id="btn-export-all">Export All</button>
                     <button class="graph-menu-action-btn" id="btn-import">Import JSON</button>
                     <input type="file" id="file-import" accept=".json" style="display: none;" />
+                    <button class="graph-menu-action-btn" id="btn-import-desmos">Import from Desmos</button>
+                    <button class="graph-menu-action-btn graph-menu-action-btn-danger" id="btn-delete-all">Delete All</button>
                 </div>
 
                 <!-- Graph Grid Container -->
@@ -159,6 +161,42 @@
         <!-- Main Calculator container -->
         <main id="calculator-container"></main>
     </div>
+
+    <!-- Desmos Import Dialog -->
+    <dialog id="desmos-import-dialog">
+        <div class="desmos-import-container">
+            <div class="desmos-import-header">
+                <span class="desmos-import-title">Import from Desmos</span>
+                <button id="btn-desmos-import-close" class="graph-menu-close-btn">&times;</button>
+            </div>
+            <ol class="desmos-import-steps">
+                <li>
+                    <p>Go to <a href="https://www.desmos.com" target="_blank" rel="noopener">desmos.com</a> while logged in, open the browser console (F12 &rarr; Console), and run:</p>
+                    <div class="desmos-snippet-row">
+                        <code class="desmos-snippet" id="desmos-snippet-text"></code>
+                        <button class="graph-menu-action-btn" id="btn-copy-snippet">Copy</button>
+                    </div>
+                </li>
+                <li>
+                    <p>The script will download <code>desmos-graphs.json</code>. Then either:</p>
+                    <div class="desmos-import-options">
+                        <div class="desmos-import-option">
+                            <strong>Option A: Upload file</strong>
+                            <input type="file" id="desmos-import-file" accept=".json" />
+                        </div>
+                        <div class="desmos-import-option">
+                            <strong>Option B: Paste JSON</strong>
+                            <textarea id="desmos-import-paste" class="desmos-import-textarea" placeholder="Paste JSON here..."></textarea>
+                        </div>
+                    </div>
+                </li>
+            </ol>
+            <div class="desmos-import-footer">
+                <button class="graph-menu-action-btn" id="btn-desmos-import-cancel">Cancel</button>
+                <button class="graph-menu-action-btn desmos-import-submit-btn" id="btn-desmos-import-submit">Import</button>
+            </div>
+        </div>
+    </dialog>
 
     <script type="module" src="/src/main.js"></script>
 </body>

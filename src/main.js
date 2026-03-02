@@ -5,6 +5,8 @@ import { copyToDesmos } from './clipboard.js';
 let manager;
 let currentGraphId = null;
 
+const DESMOS_IMPORT_SNIPPET = `fetch('/api/v1/calculator-shared/my_graphs?cb20221031=1').then(r=>r.json()).then(d=>{const a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(JSON.stringify(d));a.download='desmos-graphs.json';a.click();alert('Downloaded! Import the file in Desmos Offline.')}).catch(e=>alert('Error: '+e))`;
+
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('calculator-container');
     if (!container) return;
@@ -238,6 +240,32 @@ function setupEvents() {
         dlAnchorElem.click();
     });
 
+    document.getElementById('btn-delete-all')?.addEventListener('click', async () => {
+        const allGraphs = await getAllGraphs();
+        if (allGraphs.length === 0) {
+            showToast('No graphs to delete.');
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Delete all ${allGraphs.length} graph${allGraphs.length !== 1 ? 's' : ''}?\n\nThis cannot be undone.`
+        );
+
+        if (!confirmed) return;
+
+        for (const g of allGraphs) {
+            await deleteGraph(g.id);
+        }
+
+        if (currentGraphId) {
+            currentGraphId = null;
+            navigate(manager.currentType === 'geometry' ? '/geometry' : '/calculator', true);
+        }
+
+        renderGraphList();
+        showToast(`Deleted all ${allGraphs.length} graph${allGraphs.length !== 1 ? 's' : ''}.`);
+    });
+
     const fileImport = document.getElementById('file-import');
     document.getElementById('btn-import')?.addEventListener('click', () => fileImport?.click());
     fileImport?.addEventListener('change', async (e) => {
@@ -266,6 +294,58 @@ function setupEvents() {
         if (link && link.origin === window.location.origin && !link.hasAttribute('download')) {
             e.preventDefault();
             navigate(link.pathname + link.search + link.hash);
+        }
+    });
+
+    // Import from Desmos dialog
+    const desmosImportDialog = document.getElementById('desmos-import-dialog');
+    const desmosImportPaste = document.getElementById('desmos-import-paste');
+    const desmosImportFile = document.getElementById('desmos-import-file');
+
+    document.getElementById('desmos-snippet-text').textContent = DESMOS_IMPORT_SNIPPET;
+
+    document.getElementById('btn-import-desmos')?.addEventListener('click', () => {
+        desmosImportPaste.value = '';
+        desmosImportFile.value = '';
+        desmosImportDialog.showModal();
+    });
+
+    document.getElementById('btn-copy-snippet')?.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(DESMOS_IMPORT_SNIPPET);
+            showToast('Snippet copied to clipboard!');
+        } catch {
+            showToast('Copy failed — paste the snippet manually from the code block');
+        }
+    });
+
+    const closeDesmosImportDialog = () => desmosImportDialog.close();
+    document.getElementById('btn-desmos-import-close')?.addEventListener('click', closeDesmosImportDialog);
+    document.getElementById('btn-desmos-import-cancel')?.addEventListener('click', closeDesmosImportDialog);
+
+    document.getElementById('btn-desmos-import-submit')?.addEventListener('click', async () => {
+        const file = desmosImportFile?.files[0];
+        const text = desmosImportPaste.value.trim();
+        if (!file && !text) return;
+
+        const submitBtn = document.getElementById('btn-desmos-import-submit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Importing...';
+
+        const jsonText = file ? await file.text() : text;
+        const count = await importFromDesmos(jsonText);
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Import';
+
+        // Always close and show result
+        desmosImportDialog.close();
+        renderGraphList(searchInput?.value.trim());
+
+        if (count > 0) {
+            showToast(`✅ Imported ${count} graph${count !== 1 ? 's' : ''} from Desmos.`);
+        } else {
+            showToast('⚠️ No graphs imported — check console for errors.');
         }
     });
 }
@@ -409,4 +489,90 @@ function generateShortId() {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
+}
+
+async function importFromDesmos(jsonText) {
+    console.log('🚀 Starting Desmos import...');
+    let data;
+    try {
+        data = JSON.parse(jsonText);
+        console.log('✅ JSON parsed successfully');
+    } catch (err) {
+        console.error('❌ JSON parse error:', err);
+        showToast('Invalid JSON — make sure you pasted the full output.');
+        return 0;
+    }
+
+    const myGraphs = data.myGraphs;
+    if (!myGraphs || typeof myGraphs !== 'object') {
+        console.error('❌ No myGraphs object found');
+        showToast('Unexpected format — expected Desmos myGraphs JSON.');
+        return 0;
+    }
+
+    // Collect graphs from all keys (graphs2d, graphsGeo, etc.)
+    const allGraphs = Object.values(myGraphs).flat().filter(g => g?.stateUrl);
+    console.log(`📊 Found ${allGraphs.length} graphs total`);
+
+    // Filter to only 2D graphing calculator (skip geometry and 3D)
+    const supported2dGraphs = allGraphs.filter(g => g.product === 'graphing');
+    const skipped = allGraphs.length - supported2dGraphs.length;
+
+    if (skipped > 0) {
+        console.warn(`⚠️ Skipping ${skipped} unsupported graph(s) (geometry/3D not supported)`);
+    }
+
+    if (supported2dGraphs.length === 0) {
+        console.error('❌ No 2D graphs found');
+        showToast(`No 2D graphs to import${skipped > 0 ? ` (${skipped} unsupported graphs skipped)` : '.'}`);
+        return 0;
+    }
+
+    let imported = 0;
+    for (let i = 0; i < supported2dGraphs.length; i++) {
+        const g = supported2dGraphs[i];
+        console.log(`\n📥 Importing graph ${i + 1}/${supported2dGraphs.length}: "${g.title}" (${g.hash})`);
+        try {
+            console.log(`  Fetching state from: ${g.stateUrl}`);
+            const stateRes = await fetch(g.stateUrl);
+            if (!stateRes.ok) throw new Error(`HTTP ${stateRes.status}`);
+            const state = await stateRes.json();
+            console.log(`  ✅ State fetched`);
+
+            let thumbnail = null;
+            try {
+                console.log(`  Fetching thumbnail...`);
+                const thumbRes = await fetch(g.thumbUrl);
+                if (thumbRes.ok) {
+                    const blob = await thumbRes.blob();
+                    thumbnail = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                    console.log(`  ✅ Thumbnail fetched`);
+                }
+            } catch (err) {
+                console.warn(`  ⚠️ Thumbnail failed (optional):`, err.message);
+            }
+
+            console.log(`  Saving graph...`);
+            await saveGraph({
+                id: g.hash,
+                type: '2d',
+                name: g.title || 'Untitled Graph',
+                state,
+                thumbnail,
+            });
+            imported++;
+            console.log(`  ✅ Graph saved successfully`);
+        } catch (err) {
+            console.error(`  ❌ Failed to import graph ${g.hash}:`, err);
+        }
+    }
+
+    console.log(`\n✨ Import complete: ${imported}/${supported2dGraphs.length} graphs imported${skipped > 0 ? ` (${skipped} unsupported)` : ''}`);
+    if (imported === 0) showToast('Import failed — check the console for details.');
+    return imported;
 }

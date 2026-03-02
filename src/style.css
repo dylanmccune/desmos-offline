@@ -489,6 +489,14 @@ body {
     border-color: #bbb;
 }
 
+.graph-menu-action-btn-danger {
+    color: #c00;
+}
+
+.graph-menu-action-btn-danger:hover {
+    background: #fee;
+}
+
 /* Grid Area */
 .graph-menu-grid-container {
     flex: 1;
@@ -811,4 +819,149 @@ body {
 /* Misc Utilities */
 .w-full {
     width: 100%;
+}
+
+/* ===== Desmos Import Dialog ===== */
+#desmos-import-dialog {
+    background: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0;
+    margin: auto;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 10px 0px;
+    width: 520px;
+    max-width: calc(100vw - 80px);
+}
+
+#desmos-import-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.desmos-import-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.desmos-import-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.desmos-import-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+.desmos-import-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-left: 20px;
+}
+
+.desmos-import-steps li {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.desmos-import-steps p {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.desmos-import-steps a {
+    color: #2f72dc;
+}
+
+.desmos-snippet-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.desmos-snippet {
+    flex: 1;
+    font-family: monospace;
+    font-size: 11px;
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 10px;
+    word-break: break-all;
+    line-height: 1.5;
+    color: #333;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.desmos-import-options {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.desmos-import-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.desmos-import-option strong {
+    font-size: 12px;
+    color: #333;
+}
+
+#desmos-import-file {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.desmos-import-textarea {
+    width: 100%;
+    height: 70px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #333;
+    resize: vertical;
+    outline: none;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.desmos-import-textarea:focus {
+    border-color: #999;
+}
+
+.desmos-import-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid #eee;
+}
+
+.desmos-import-submit-btn {
+    background: #2f72dc;
+    color: #fff;
+    border-color: transparent;
+}
+
+.desmos-import-submit-btn:hover {
+    background: #2459b0;
+    border-color: transparent;
 }
