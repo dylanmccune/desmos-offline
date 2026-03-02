@@ -514,66 +514,71 @@ async function importFromDesmos(jsonText) {
     const allGraphs = Object.values(myGraphs).flat().filter(g => g?.stateUrl);
     console.log(`📊 Found ${allGraphs.length} graphs total`);
 
-    // Filter to supported calculators (2D graphing and geometry, skip 3D)
-    const supportedGraphs = allGraphs.filter(g => g.product === 'graphing' || g.product === 'geometry');
+    // Log all unique product types so we can see exactly what Desmos returns
+    const productCounts = {};
+    allGraphs.forEach(g => { productCounts[g.product] = (productCounts[g.product] || 0) + 1; });
+    console.log('Product types in data:', productCounts);
+
+    // Skip only known-unsupported types (3D). Accept everything else.
+    const supportedGraphs = allGraphs.filter(g => !g.product?.toLowerCase().includes('3d'));
     const skipped = allGraphs.length - supportedGraphs.length;
 
     if (skipped > 0) {
-        console.warn(`⚠️ Skipping ${skipped} unsupported graph(s) (3D not supported)`);
+        console.warn(`⚠️ Skipping ${skipped} 3D graph(s) (unsupported)`);
     }
 
     if (supportedGraphs.length === 0) {
         console.error('❌ No supported graphs found');
-        showToast(`No graphs to import${skipped > 0 ? ` (${skipped} unsupported graphs skipped)` : '.'}`);
+        showToast(`No graphs to import${skipped > 0 ? ` (${skipped} 3D graphs skipped)` : '.'}`);
         return 0;
     }
 
-    let imported = 0;
-    for (let i = 0; i < supportedGraphs.length; i++) {
-        const g = supportedGraphs[i];
+    console.log(`📥 Fetching ${supportedGraphs.length} graphs in parallel...`);
+
+    // Fetch all states and thumbnails in parallel
+    const results = await Promise.allSettled(supportedGraphs.map(async (g) => {
         const graphType = g.product === 'geometry' ? 'geometry' : '2d';
-        console.log(`\n📥 Importing graph ${i + 1}/${supportedGraphs.length}: "${g.title}" (${g.hash}) [${graphType}]`);
+
+        const stateRes = await fetch(g.stateUrl);
+        if (!stateRes.ok) throw new Error(`State fetch failed: HTTP ${stateRes.status}`);
+        const state = await stateRes.json();
+
+        let thumbnail = null;
         try {
-            console.log(`  Fetching state from: ${g.stateUrl}`);
-            const stateRes = await fetch(g.stateUrl);
-            if (!stateRes.ok) throw new Error(`HTTP ${stateRes.status}`);
-            const state = await stateRes.json();
-            console.log(`  ✅ State fetched`);
-
-            let thumbnail = null;
-            try {
-                console.log(`  Fetching thumbnail...`);
-                const thumbRes = await fetch(g.thumbUrl);
-                if (thumbRes.ok) {
-                    const blob = await thumbRes.blob();
-                    thumbnail = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(blob);
-                    });
-                    console.log(`  ✅ Thumbnail fetched`);
-                }
-            } catch (err) {
-                console.warn(`  ⚠️ Thumbnail failed (optional):`, err.message);
+            const thumbRes = await fetch(g.thumbUrl);
+            if (thumbRes.ok) {
+                const blob = await thumbRes.blob();
+                thumbnail = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
             }
+        } catch { /* thumbnail is optional */ }
 
-            console.log(`  Saving graph (type: ${graphType})...`);
-            await saveGraph({
-                id: g.hash,
-                type: graphType,
-                name: g.title || 'Untitled Graph',
-                state,
-                thumbnail,
-            });
+        await saveGraph({
+            id: g.hash,
+            type: graphType,
+            name: g.title || 'Untitled Graph',
+            state,
+            thumbnail,
+        });
+
+        return g.hash;
+    }));
+
+    let imported = 0;
+    results.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
             imported++;
-            console.log(`  ✅ Graph saved successfully`);
-        } catch (err) {
-            console.error(`  ❌ Failed to import graph ${g.hash}:`, err);
+            console.log(`✅ ${supportedGraphs[i].title} (${supportedGraphs[i].hash})`);
+        } else {
+            console.error(`❌ ${supportedGraphs[i].title} (${supportedGraphs[i].hash}):`, r.reason);
         }
-    }
+    });
 
-    console.log(`\n✨ Import complete: ${imported}/${supportedGraphs.length} graphs imported${skipped > 0 ? ` (${skipped} unsupported)` : ''}`);
+    console.log(`\n✨ Import complete: ${imported}/${supportedGraphs.length} graphs imported${skipped > 0 ? ` (${skipped} 3D skipped)` : ''}`);
     if (imported === 0) showToast('Import failed — check the console for details.');
     return imported;
 }
