@@ -510,11 +510,19 @@ async function importFromDesmos(jsonText) {
         return 0;
     }
 
-    // Collect graphs from all keys (graphs2d, graphsGeo, etc.)
-    const allGraphs = Object.values(myGraphs).flat().filter(g => g?.stateUrl);
+    // Collect graphs from all keys, using key name to detect geometry
+    console.log('myGraphs keys:', Object.keys(myGraphs));
+    const allGraphs = [];
+    for (const [key, graphs] of Object.entries(myGraphs)) {
+        if (!Array.isArray(graphs)) continue;
+        const keyIsGeometry = key.toLowerCase().includes('geo');
+        for (const g of graphs) {
+            if (g?.stateUrl) allGraphs.push({ ...g, _keyIsGeometry: keyIsGeometry });
+        }
+    }
     console.log(`📊 Found ${allGraphs.length} graphs total`);
 
-    // Log all unique product types so we can see exactly what Desmos returns
+    // Log all unique product types for debugging
     const productCounts = {};
     allGraphs.forEach(g => { productCounts[g.product] = (productCounts[g.product] || 0) + 1; });
     console.log('Product types in data:', productCounts);
@@ -537,7 +545,8 @@ async function importFromDesmos(jsonText) {
 
     // Fetch all states and thumbnails in parallel
     const results = await Promise.allSettled(supportedGraphs.map(async (g) => {
-        const graphType = g.product === 'geometry' ? 'geometry' : '2d';
+        // Determine type from key name (most reliable), falling back to product field
+        const graphType = (g._keyIsGeometry || g.product === 'geometry') ? 'geometry' : '2d';
 
         const stateRes = await fetch(g.stateUrl);
         if (!stateRes.ok) throw new Error(`State fetch failed: HTTP ${stateRes.status}`);
