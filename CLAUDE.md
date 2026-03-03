@@ -35,3 +35,7 @@ The Desmos API instance is wrapped by `CalculatorManager`. On change (expression
 ### Desmos API
 
 The Desmos calculator script is loaded externally (not bundled). `window.Desmos` must be available before creating a `CalculatorManager` instance. The API is mounted into `#calculator-container`.
+
+### Notes for Claude
+
+Whenever you make changes, commit them with a concise commit message. Do not push changes unless I tell you to do so. Do not add "co-authored by claude" to the end of your commit messages.
